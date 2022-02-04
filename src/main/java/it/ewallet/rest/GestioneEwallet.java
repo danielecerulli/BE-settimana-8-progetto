@@ -49,7 +49,7 @@ public class GestioneEwallet {
 				break;
 			}			
 		}		
-		return Response.status(200).entity("Eliminazione ContoCorrente avvenuta con successo").build();
+		return Response.status(200).entity("Eliminazione ContoCorrente avvenuta con successo/ IBAN eliminato: " + iban).build();
 	}
 	
 	@DELETE
@@ -70,7 +70,7 @@ public class GestioneEwallet {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response apriConto(ContoCorrente c) {
 		conti.add(c);
-		return Response.status(200).entity("Apertura Conto avvenuta con successo").build();
+		return Response.status(200).entity("Apertura Conto avvenuta con successo Conto: " + c.getIban() + " Intestatario: " + c.getIntestatario() + " Data apertura: " + c.getDataApertura()).build();
 	}
 	
 	@PUT
@@ -105,9 +105,11 @@ public class GestioneEwallet {
 	@Path("/versa/{importo}/{iban}/{dataM}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response versa(@PathParam("iban")int iban, @PathParam("dataM")String dataM, @PathParam("importo")double importo) {
+		double nS = 0;
 		for (ContoCorrente c : conti ) {
 			if (c.getIban() == iban) {
 				double nSaldo = c.getSaldo() + importo;
+				nS = nSaldo;
 				c.setSaldo(nSaldo);
 				Movimento m = new Movimento();
 				m.setIbanM(iban);
@@ -116,18 +118,21 @@ public class GestioneEwallet {
 				m.setImporto(importo);
 				movimenti.add(m);
 			}
-		
+			
 		}
-		return Response.status(200).entity("Versamento avvenuto con successo").build();
+		 
+		return Response.status(200).entity("Versamento avvenuto con successo | importo versato: " + importo + " iban Conto: " + iban + " intestatario: " + " nuovo saldo: " + nS + " Data: " + dataM).build();
 	}
 	
 	@PUT
 	@Path("/preleva/{importo}/{iban}/{dataM}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response preleva(@PathParam("iban")int iban, @PathParam("dataM")String dataM, @PathParam("importo")double importo) {
+		double nS = 0;
 		for (ContoCorrente c : conti ) {
 			if (c.getIban() == iban) {
 				double nSaldo = c.getSaldo() - importo;
+				nS = nSaldo;
 				c.setSaldo(nSaldo);
 				Movimento m = new Movimento();
 				m.setIbanM(iban);
@@ -138,7 +143,7 @@ public class GestioneEwallet {
 			}
 		
 		}
-		return Response.status(200).entity("Versamento avvenuto con successo").build();
+		return Response.status(200).entity("Prelievo avvenuto con successo | importo prelevato: " + importo + " iban Conto: " + iban + " intestatario: " + " nuovo saldo: " + nS + " Data: " + dataM).build();
 	}
 	
 }
