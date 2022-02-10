@@ -1,0 +1,84 @@
+JDK: JavaSE-1.8 (jdk-17.0.1)
+WildFly ver.: WildFly 26.0.0 Final
+Autore: Daniele Cerulli, studente 5.
+data: 03/02/2022
+Progetto settimana 8 corso BE-0721A.
+Titolo: "Ewallet"
+
+Librerie utilizzate: jackson-core-asl-1.9.2.jar
+                     jackson-jaxrs-1.9.2.jar
+     		     jackson-mapper-asl-1.9.2.jar
+     		     jackson-xc-1.9.2.jar
+     		     jersey-client-1.19.1.jar
+      		     jersey-core-1.19.1.jar
+        	     jersey-json-1.19.1.jar
+     		     jersey-server-1.19.1.jar
+                     jersey-servlet-1.19.1.jar
+                     jettison-1.1.jar
+                     jsr311-api-1.1.1.jar
+
+Salve, di seguito alcune indicazioni per l'utilizzo dell'API Rest "Ewallet":
+
+-- Registered web context: '/Ewallet'
+
+--aggiungere "/rest/conto/" dopo il web context name per poi poter 
+  scegliere il tipo di servizio REST desiderato.
+
+--Sono presenti i servizi: 
+   	
+	#1"/vediconti" --> dopo aver selezionato l'apposito method "GET"
+  	   su PostmanDesktop è sufficiente 
+           inserire l'URI: "http://localhost:8080/Ewallet/rest/conto/vediconti"
+	   e premere il tasto "SEND".
+	   Il servizio fornirà i dati desiderati in formato "json".
+	   ATTENZIONE: Se non sono presenti "ContoCorrente" nell'ArrayList
+           "conti" sarà necessario creare dei tramite l'apposito servizio
+           "/apriconto", con il quale sarà necessario scrivere in formato json
+            tutti i campi richiesti.
+           Esempio json Conto : 
+
+			{
+    			
+			"iban": 3,
+    			"intestatario": "Giacomo",
+    			"saldo": 15000.0,
+   			"dataApertura": "01gennaio2022"
+			
+			}
+
+	#2"/vedimovimenti" --> simile al "/vediconti"
+				ma in questo caso il json prodotto conterrà
+				i seguenti dati:
+
+				{
+       				 "tipo": "versamento",
+       				 "importo": 100.0,
+       				 "data": "03febbraio2022",
+       				 "ibanM": 3
+    				}
+
+	#3 "/versa/{importo}/{ibanM}/{dataM}"; "/preleva/{importo}/{ibanM}/{dataM}" -->
+				
+				Per i seguenti metodi è sufficiente selezionare il metodo
+				"PUT" su PostmanDesktop ed inserire nella URI i dati
+				richiesti come segue(ad esempio versiamo su un conto esistente):
+			"http://localhost:8080/Ewallet/rest/conto/versa/100.0/3/03febbraio2022"	
+			Parametri: importo(double) --> l'importo da versare o prelevare
+				   ibanM(int) --> l'iban del conto da cui prelevare o su cui versare
+				   dataM(String) --> la data in cui è stata effettuata l'operazione
+							Esempio formato dataM: 03febbraio2022
+
+	Il resto dei servizi presenta caratteristiche molto simili tra loro e facilmente riconoscibili.
+
+	lista completa servizi:
+	
+    GET	"/vediconti" --> vedi lista conti in formato json
+    GET	"/vedimovimenti" --> vedi lista movimenti in formato json
+ DELETE "/cancellaconto/{iban}"--> cancella un contoCorrente prendendo come parametro nell'URI l'iban del conto da eliminare
+ DELETE	"/cancellamovimento/{ibanM}" --> cancella un movimento prendendo come parametro l'iban associato a quel movimento
+   POST	"/apriconto" --> apre un contoCorrente e lo aggiunge alla lista dei conti (necessario formato json)
+    PUT	"/aggiornaconto" --> aggiorna un conto partendo da un file json (guarda sopra per il formato) e, inserendo l'iban nel campo dedicato del file, è possibile modificare i dati associati a quell'iban
+    GET	"/cercaconto/{iban}" --> cerca un conto fornendo un parametro iban nell'URI
+    PUT	"/versa/{importo}/{iban}/{dataM}" --> versa importo dal saldo associato all'iban inserito fornendo i dati indicati nei campi dell'URI
+    PUT	"/preleva/{importo}/{iban}/{dataM}" --> preleva importo dal saldo associato all'iban inserito fornendo i dati indicati nei campi dell'URI
+		
