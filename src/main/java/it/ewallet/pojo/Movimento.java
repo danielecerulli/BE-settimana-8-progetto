@@ -8,6 +8,7 @@ public class Movimento {
 	private double importo;
 	private String data;
 	private int ibanM;
+	
 	public String getTipo() {
 		return tipo;
 	}
@@ -47,8 +48,10 @@ public class Movimento {
 		Movimento other = (Movimento) obj;
 		return ibanM == other.ibanM;
 	}
-	
-	
-	
+	@Override
+	public String toString() {
+		return "Movimento [tipo=" + tipo + ", importo=" + importo + ", data=" + data + ", ibanM=" + ibanM + "]";
+	}
+		
 
 }

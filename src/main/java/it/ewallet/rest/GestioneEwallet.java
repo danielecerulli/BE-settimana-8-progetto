@@ -2,6 +2,7 @@ package it.ewallet.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -106,6 +107,7 @@ public class GestioneEwallet {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response versa(@PathParam("iban")int iban, @PathParam("dataM")String dataM, @PathParam("importo")double importo) {
 		double nS = 0;
+		ContoCorrente cc = null;
 		for (ContoCorrente c : conti ) {
 			if (c.getIban() == iban) {
 				double nSaldo = c.getSaldo() + importo;
@@ -117,18 +119,20 @@ public class GestioneEwallet {
 				m.setTipo("versamento");
 				m.setImporto(importo);
 				movimenti.add(m);
+				cc = c;
 			}
 			
 		}
 		 
-		return Response.status(200).entity("Versamento avvenuto con successo | importo versato: " + importo + " iban Conto: " + iban + " intestatario: " + " nuovo saldo: " + nS + " Data: " + dataM).build();
+		return Response.status(200).entity("Versamento avvenuto con successo | importo versato: " + importo + " iban Conto: " + iban + " intestatario: " + cc.getIntestatario() + " nuovo saldo: " + nS + " Data: " + dataM).build();
 	}
 	
 	@PUT
 	@Path("/preleva/{importo}/{iban}/{dataM}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response preleva(@PathParam("iban")int iban, @PathParam("dataM")String dataM, @PathParam("importo")double importo) {
+	public Response preleva(@PathParam("iban")int iban, @PathParam("dataM")String dataM, @PathParam("importo")double importo) {		
 		double nS = 0;
+		ContoCorrente cc = null;
 		for (ContoCorrente c : conti ) {
 			if (c.getIban() == iban) {
 				double nSaldo = c.getSaldo() - importo;
@@ -140,10 +144,68 @@ public class GestioneEwallet {
 				m.setTipo("prelievo");
 				m.setImporto(importo);
 				movimenti.add(m);
+				cc = c;
 			}
 		
 		}
-		return Response.status(200).entity("Prelievo avvenuto con successo | importo prelevato: " + importo + " iban Conto: " + iban + " intestatario: " + " nuovo saldo: " + nS + " Data: " + dataM).build();
+		return Response.status(200).entity("Prelievo avvenuto con successo | importo prelevato: " + importo + " iban Conto: " + iban + " intestatario: " + cc.getIntestatario() + " nuovo saldo: " + nS + " Data: " + dataM).build();
+	}
+	
+	@GET
+	@Path("/trovamovimentiiban/{ibanM}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<Movimento> trovaMovimentiByIban(@PathParam("ibanM")int ibanM) {
+		//ArrayList<Movimento> movimentiTmp = new ArrayList<Movimento>();
+		// THIS IS OLDSTYLE
+		/*for (Movimento m : movimenti) {
+			if ( m.getIbanM() == ibanM ) {
+				movimentiTmp.add(m);
+			}
+		
+		}*/
+		//LAMBDA STYLE
+		/*movimenti.forEach( (m) -> {
+			if ( m.getIbanM() == ibanM ) {
+				movimentiTmp.add(m);
+			}
+		});
+		System.out.println("Versione Lambda .forEach()");*/
+		
+		//LAMBDA CON STREAM e .filter (LA MORTE SUA) 		 											//prendo array movimenti lo fa diventare uno stream, utilizziamo il filter
+		return movimenti.stream().filter( m -> m.getIbanM() == ibanM ).collect(Collectors.toList());	// per discriminare gli elementi che ci interessano (predicato o funzione lambda)
+																										//utilizziamo collect(Collectors.toList) per aggiungere gli elementi trovati in una lista
+	}
+	
+	public static void stampaListaMovimenti(Movimento m) {	
+			System.out.println("tipo mov: " + m.getTipo());
+		
+	}
+	
+	@POST
+	@Path("/inviocontimassivo")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response invioCcMassivo(List<ContoCorrente> listaC) {				
+		conti.addAll(listaC);
+		List<Double> saldiConti = restituisciSaldiContiCorrente();
+		double saldoTot = saldiConti.stream().reduce( 0.0, (sommaParziale, saldoCorrente) -> sommaParziale + saldoCorrente ); //reduce: parametroIniziale, (sommaParz, elementoCorr) restituisce un solo risultato
+		System.out.println("Saldo Tot conti: " + saldoTot );
+		saldiConti.stream().forEach( saldo -> System.out.println("Saldo: " + saldo) ); //forEach
+		return Response.status(200).entity("Invio Conti avvenuta con successo!").build();
+	
+	}
+	@POST
+	@Path("/inviomovimentimassivo")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response invioMovMassivo(List<Movimento> listaM) {
+		//movimenti.forEach(GestioneEwallet::stampaListaMovimenti);
+		movimenti.forEach(System.out::println);
+		movimenti.addAll(listaM);
+		return Response.status(200).entity("Invio Movimenti avvenuta con successo!").build();
+	}
+	
+	public List<Double> restituisciSaldiContiCorrente() { 								// il map prende nello stream di ingresso elementi di un certo tipo
+		return conti.stream().map( c -> c.getSaldo() ).collect(Collectors.toList());
+																							// estrae un attributo per poi effettuare operazioni su esso/essi oppure restituire quell'unico attributo
 	}
 	
 }

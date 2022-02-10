@@ -50,7 +50,10 @@ public class ContoCorrente {
 		ContoCorrente other = (ContoCorrente) obj;
 		return iban == other.iban;
 	}
+	@Override
+	public String toString() {
+		return "ContoCorrente [iban=" + iban + ", intestatario=" + intestatario + ", saldo=" + saldo + ", dataApertura="
+				+ dataApertura + "]";
+	}
 	
-	
-
 }
